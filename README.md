@@ -1,68 +1,51 @@
-Hi, I’m **Bhavesh** — a GenAI practitioner with **5 years of experience** building ML/AI features end-to-end. I care about **reliable retrieval**, **measurable quality**, **safety**, and **shipping to production**.
+# RAG — Deep Guide & Demo (OpenAI-only, Streamlit)
 
----
+This project teaches **Retrieval-Augmented Generation (RAG)** step-by-step and lets you query your own documents.
+It uses **OpenAI embeddings** + **ChromaDB** and avoids local ML dependencies (no torch/sentence-transformers/tiktoken).
+**Image generation is removed.**
 
-## What I do
-- **RAG systems**: ingestion → chunking → embeddings → vector store → retrieval → grounded answers with citations
-- **Quality & safety**: eval harnesses (faithfulness, answer quality), prompt tests, PII redaction, guardrails
-- **LLM apps**: chat UX, tools/agents, function calling, cost/latency tuning
-- **Ops**: tracing, observability, A/B tests, rollout playbooks
+## Folder layout
+```
+rag-deep-openai-only/
+├─ docs/              # put your PDFs / .txt / .md here
+├─ chroma/            # local vector DB
+├─ .env.example       # copy to .env and add your key
+├─ requirements.txt
+├─ rag_core.py        # ingestion, chunking, embeddings (OpenAI), retrieval, prompting
+└─ app.py             # Streamlit app (Deep Guide • Demo • Diagnostics)
+```
 
----
+## Quickstart
+```bash
+python -m venv .venv
+# Windows: .venv\Scripts\activate
+source .venv/bin/activate
 
-## Tech I use
-- **Python**, FastAPI, Streamlit
-- **OpenAI API** (chat + embeddings), function calling
-- Vector stores: **Chroma**, Pinecone
-- Pipelines: LangChain / LlamaIndex (when helpful), or lightweight DIY
-- Infra: Docker, CI/CD, basic K8s & cloud (AWS/GCP/Azure)
-- Evals: Ragas/DeepEval patterns, offline A/B, golden sets
+pip install -r requirements.txt
 
----
+cp .env .env
+# paste your OPENAI_API_KEY; optionally adjust OPENAI_MODEL / OPENAI_EMBED_MODEL
 
-## Portfolio highlights (links)
-- **RAG Mini (OpenAI-only)** — minimal, production-minded RAG reference  
-  `./projects/rag-mini/` (ingestion, retrieval, citations, Streamlit demo)
-- **LLM Evaluation Harness** — golden sets, faithfulness checks, cost/latency tracking  
-  `./projects/eval-harness/`
-- **Agentic Workflows** — tool use (search/db), safety filters, retry/backoff  
-  `./projects/agentic-tools/`
+# add a few .md/.txt/.pdf files to ./docs
 
-> Tip: Replace the paths above with your public repos / demos (or keep this structure and push later).
+streamlit run app.py
+```
 
----
+## How it works (concise)
+1. **Ingest**: reads files in `./docs` (PDF/MD/TXT).
+2. **Chunk**: character-based (~1500 chars, 200 overlap) to avoid tiktoken.
+3. **Embed**: calls OpenAI embeddings (`text-embedding-3-small`) to get vectors.
+4. **Store**: saves vectors + metadata (file path, chunk id) in ChromaDB.
+5. **Retrieve**: embeds user query; finds top-K nearest chunks.
+6. **Generate**: passes chunks to a chat model and asks for a citation-backed answer.
 
-## Starter structure
-genai-playbook-bhavesh/
-├─ projects/
-│ ├─ rag-mini/ # end-to-end RAG reference (OpenAI embeddings + Chroma)
-│ ├─ eval-harness/ # reusable evaluation scripts and golden sets
-│ └─ agentic-tools/ # examples of function/tool calling patterns
-├─ notebooks/ # quick experiments, ablations
-├─ docs/ # design notes, diagrams, writeups
-└─ README.md
+## Tuning hints
+- **Chunk size/overlap**: start ~1500/200; shorten if answers are too broad, lengthen if context gets cut.
+- **Top-K**: start 5; increase for coverage, decrease for precision.
+- **Prompt**: keep temperature low (0–0.2) and demand sources.
+- **Filtering**: add metadata filters (e.g., restrict by filename/section) for multi-domain corpora.
 
-markdown
-Copy code
-
----
-
-## “How I approach RAG” (condensed)
-1. **Ingest & Normalize**: PDFs/MD/TXT; track metadata (file, section, page).
-2. **Chunking**: size ~700–1500 chars, overlap 10–20%; avoid cutting mid-sentence.
-3. **Embeddings**: pick a stable model; monitor drift if you swap.
-4. **Store**: vector DB with metadata for filtering.
-5. **Retrieval**: top-K + (optional) re-ranking; minimize prompt bloat.
-6. **Generation**: “use-context-only” instruction; include **citations**.
-7. **Evaluate**: faithfulness, answer quality, coverage, latency, cost.
-8. **Operate**: tracing, redaction, safety filters, caching, rollback plan.
-
----
-
-## Contact & Availability
-- **Location**: USA — open to **full-time** roles
-- **Email**: kallurubhavesh341@gmail.com  
-- **LinkedIn**: https://www.linkedin.com/in/bhaveshkalluru/
-> I’m ready to help teams ship practical GenAI features with measurable quality.
-
----
+## Troubleshooting
+- **No index / No results**: add docs to `./docs` and click **Rebuild Index**.
+- **Behind a proxy**: set `OPENAI_PROXY` or `HTTPS_PROXY`/`HTTP_PROXY` in your environment.
+- **Rate limits**: slow down rebuilds or reduce batch size in `rag_core.py`.
