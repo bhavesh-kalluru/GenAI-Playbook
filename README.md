@@ -61,10 +61,8 @@ Copy code
 
 ## Contact & Availability
 - **Location**: USA — open to **full-time** roles
-- **Email**: _your.email@domain.com_  
-- **LinkedIn**: _https://www.linkedin.com/in/your-handle_  
-- **Calendly** (optional): _https://calendly.com/your-handle/intro_
-
+- **Email**: kallurubhavesh341@gmail.com  
+- **LinkedIn**: https://www.linkedin.com/in/bhaveshkalluru/
 > I’m ready to help teams ship practical GenAI features with measurable quality.
 
 ---
